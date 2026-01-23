@@ -1,0 +1,92 @@
+---
+title: "HW2"
+format: html
+---
+
+In this project, we will be working with data from the Federal Emergency Management Agency (FEMA) Resilience Analysis and Planning Tool (RAPT). This tool has more than 100 layers of social data like population, infrastructure and hazards.
+
+We will be working with the National Risk Index (NRI) which provides information about which communities are at risk to 18 different natural hazards. Each community is assigned a risk rating based on annual expected loss, social vulnerability, and community resilience. These risk ratings are represented by percentile ranking among all communities at the same risk level. We will use NRI data to answer the following question:
+
+"How do FEMA National Risk Index scores for counties in California compare to those in other states?"
+
+```{r}
+# load packages
+library(tidyverse)
+library(janitor)
+library(here)
+```
+
+### Step 1: Read in data
+
+```{r}
+nri <- read_csv(here("data", "National_Risk_Index_Counties.csv")) %>% 
+  clean_names()
+```
+
+### Step 2: Plan Visualization
+
+Before we begin, we can make a tentative plan about how we will build our visualization to answer our question.
+
+**Variables of interest**
+
+-   Inputs: Counties in California vs counties in the other continental US states
+
+    -   Data type: Categorical
+
+-   Outputs: Risk index scores
+
+    -   Data type: Categorical
+
+**Types of plots**
+
+Because we have a categorical input and categorical output, we have a few options for visualizations that would be appropriate.
+
+Some options include:
+
+1.  spider plot
+
+2.  heatmap
+
+3.  treemap
+
+4.  grouped scatter
+
+5.  lollipop
+
+6.  barplot
+
+7.  sunburst
+
+8.  circular packing
+
+We will try a few of these options to see what best represents our question and our data.
+
+### Step 3: Clean and explore data
+```{r}
+glimpse(nri)
+# quite a few columns (>450) we do not want to look at
+# most columns are dbl or chr
+# over 3000 rows, so we will definitely need to summarise
+
+unique(nri$national_risk_index_rating_composite) # 5 scores, remove 'insufficient data'
+
+# count counties in each state for each score, left with 5 rows for each state 
+nri_scores <- nri %>% 
+  rename(risk_score = national_risk_index_rating_composite) %>% 
+  filter(risk_score != "Insufficient Data") %>% 
+  mutate(risk_score = fct_relevel(risk_score, "Very Low", "Relatively Low", "Relatively Moderate", "Relatively High", "Very High")) %>% 
+  group_by(state_name, risk_score) %>% 
+  summarise(score_count = n()) %>% 
+  ungroup()
+
+# quick plots to see what we are working with
+ggplot(nri_scores, aes(x = state_name, y = score_count)) +
+  geom_point(aes(color = risk_score))
+
+ggplot(nri_scores, aes(x = risk_score)) +
+  geom_bar()
+```
+
+### Step 4: Try out different plots
+
+### Step 5: Beautify \_\_\_\_ plot
