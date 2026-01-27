@@ -1,4 +1,4 @@
-#FEMA National Risk Index Scores by State
+# FEMA National Risk Index Scores by State
 ### eds240-nri-acs-viz
 
 This repository contains all code and outputs for the second homework assignment for EDS240 - Data Visualization & Communication for the UCSB MEDS program. This project focuses on exploring the Federal Emergency Management Agency (FEMA)
