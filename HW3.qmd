@@ -2,7 +2,7 @@
 title: "FEMA National Risk Index Scores by Racial Demographics"
 format: pdf
 author: "Leela Dixit"
-date: "2/11/2026"
+date: "2/20/2026"
 editor_options: 
   chunk_output_type: console
 ---
@@ -135,27 +135,42 @@ nri_race_bar <- nri_race_plot %>%
   ungroup() %>% 
   # find racial group in each category with max percentage
   group_by(rating) %>%
-  dplyr::mutate(max = ratio == max(ratio))
+  dplyr::mutate(max = ratio == max(ratio)) %>% 
+  mutate(category = case_when(
+         category == "American Indian and Alaska Native alone" ~ "American Indian/Alaska Native",
+         category == "White alone" ~ "White",
+         category == "Two or More Races:" ~ "Two or More Races",
+         category == "Black or African American alone" ~ "Black/African American",
+         category == "Some Other Race alone" ~ "Other Race",
+         category == "Hispanic or Latino:" ~ "Hispanic/Latino",
+         category == "Asian alone" ~ "Asian",
+         category == "Native Hawaiian and Other Pacific Islander alone" ~ "Native Hawaiian/Pacific Islander"))
 
 # relevel risk index to show up in facet in correct order
-ref = c("Relatively Low", "Relatively Moderate", "Relatively High", "Very High")
+nri_levels = c("Relatively Low", "Relatively Moderate", "Relatively High", "Very High")
 nri_race_bar <- nri_race_bar %>% 
-  mutate(rating = fct_relevel(rating, ref))
+  mutate(rating = fct_relevel(rating, nri_levels))
+
+# relevel 'relatively low' to remove blank space
+race_levels <- nri_race_bar %>% 
+  filter(rating == "Relatively Low") %>% 
+  arrange(ratio)
+race_levels <- race_levels$category
+nri_race_bar <- nri_race_bar %>% 
+  mutate(category = fct_relevel(category, race_levels))
 
 # dodged bar plot
 ggplot(nri_race_bar, aes(y = category, x = ratio, fill = max)) +
   geom_bar(stat="identity") +
   labs(x = "Proportion of Population",
        y = "Racial Group",
-       title = "Proportion of Racial Group Population Under each National Risk Index (NRI) Score",
-       subtitle = "Light blue indicates the racial group experiencing that NRI score the most",
+       title = "Racial groups experience disproportionate National Risk Index (NRI) scores",
+       subtitle = "While most racial groups are experiencing 'very high' NRI scores, Asian and Native Hawaiian/Pacific Islander\npopulations dominate the higher categories",
        caption = "Data Sources: FEMA National Risk Index (2023 Release) and the US Census Bureau’s American Community Survey (ACS)") +
   # facet by NRI score
   facet_wrap(~rating, scales = "free") +
   scale_fill_manual(values = c("#2e4057", "#00798c")) +
   theme_minimal() +
-  # adjust y axis labels
-  scale_y_discrete(labels = c("American Indian/Alaska Native", "Asian", "Black/African American", "Hispanic/Latino", "Native Hawaiian/Pacific Islander", "Other Race", "Two or More Races", "White")) +
   # remove legend
   guides(fill = "none")
 
